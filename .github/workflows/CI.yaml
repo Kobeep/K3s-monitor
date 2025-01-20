@@ -2,10 +2,10 @@ name: Testing K3s-monitoring
 
 on:
   push:
-    branches:
-      - feature/*
+    branches: [ feature/* ]
   pull_request:
-      - main
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   test:
