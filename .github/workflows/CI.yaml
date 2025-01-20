@@ -1,0 +1,55 @@
+name: Testing K3s-monitoring
+
+on:
+  push:
+    branches:
+      - feature/*
+  pull_request:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Docker
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker.io
+
+    - name: Build Docker image
+      run: |
+        docker build -t flask-monitor:ci-test ./flask-app
+
+    - name: Run tests in Docker container
+      run: |
+        docker run --rm flask-monitor:ci-test python -m unittest discover -s tests -p "*.py"
+
+  deploy-k3s:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up K3d
+      run: |
+        curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+        k3d cluster create test-cluster --wait
+
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f ./k8s
+
+    - name: Wait for pods to be ready
+      run: |
+        kubectl wait --for=condition=ready pod --all --timeout=120s -n default
+
+    - name: Test application in Kubernetes
+      run: |
+        kubectl get pods
+        kubectl port-forward svc/flask-monitor-service 5000:5000 &
+        curl -s http://localhost:5000 | grep "Kubernetes Monitor Running!"
