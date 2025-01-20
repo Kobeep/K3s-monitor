@@ -19,6 +19,11 @@ jobs:
       run: |
         sudo ./run.sh
 
+    - name: Verify Kubernetes API
+      run: |
+        kubectl cluster-info
+        kubectl get nodes
+
     - name: Wait for pods to be ready
       run: |
         kubectl wait --for=condition=ready pod --all --timeout=120s -n default
