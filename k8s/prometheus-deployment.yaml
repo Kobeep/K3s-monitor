@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: prometheus-config
 data:
-  prometheus.yml: |
+  prometheus.yaml: |
     global:
       scrape_interval: 15s
     scrape_configs:
@@ -29,7 +29,7 @@ spec:
       - name: prometheus
         image: prom/prometheus
         args:
-          - "--config.file=/etc/prometheus/prometheus.yml"
+          - "--config.file=/etc/prometheus/prometheus.yaml"
         ports:
         - containerPort: 9090
         volumeMounts:
